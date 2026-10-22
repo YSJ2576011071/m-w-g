@@ -3,460 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Neon Snake Game</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts (Press Start 2P for retro feeling) -->
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    
+    <title>온라인 네온 스네이크 게임</title>
     <style>
+        :root {
+            --bg-color: #0d0f12;
+            --card-bg: #161b22;
+            --accent-green: #00ff66;
+            --accent-red: #ff3366;
+            --text-color: #e6edf3;
+            --border-color: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', monospace, sans-serif;
+        }
+
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background-color: #08080c;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .font-retro {
-            font-family: 'Press Start 2P', cursive;
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+            justify-content: center;
         }
-        .neon-border {
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4), inset 0 0 15px rgba(0, 255, 0, 0.2);
-            border: 2px solid #00FF00;
+
+        .game-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .neon-text-green {
-            text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
+
+        .header {
+            margin-bottom: 15px;
+            text-align: center;
         }
-        .neon-text-red {
-            text-shadow: 0 0 8px rgba(255, 0, 0, 0.8);
+
+        .header h1 {
+            color: var(--accent-green);
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.5);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
         }
-        /* Custom scrollbar for leaderboard */
-        ::-webkit-scrollbar {
-            width: 6px;
+
+        .score-board {
+            font-size: 1.2rem;
+            color: #8b949e;
         }
-        ::-webkit-scrollbar-track {
-            background: #111;
+
+        .score-board span {
+            color: var(--accent-green);
+            font-weight: bold;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #00FF00;
-            border-radius: 3px;
+
+        canvas {
+            border: 3px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            background-color: #000;
+        }
+
+        .leaderboard-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .leaderboard-section h2 {
+            color: var(--accent-green);
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: 5px;
+            font-size: 0.95rem;
+        }
+
+        .leaderboard-item.top3 {
+            border-left: 3px solid var(--accent-green);
+            background-color: rgba(0, 255, 102, 0.05);
+        }
+
+        .rank {
+            font-weight: bold;
+            color: var(--accent-green);
+            width: 30px;
+        }
+
+        .player-name {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .player-score {
+            font-weight: bold;
+        }
+
+        .controls-hint {
+            margin-top: 15px;
+            color: #8b949e;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        /* 모바일용 버추얼 패드 */
+        .touch-controls {
+            display: none;
+            grid-template-columns: repeat(3, 50px);
+            grid-template-rows: repeat(2, 50px);
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .touch-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        @media (max-width: 768px) {
+            .touch-controls {
+                display: grid;
+            }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between items-center p-4 selection:bg-green-500 selection:text-black">
+<body>
 
-    <!-- Header Section -->
-    <header class="text-center my-4">
-        <h1 class="text-3xl sm:text-5xl font-extrabold font-retro text-green-400 neon-text-green tracking-wider mb-2">
-            SNAKE GAME
-        </h1>
-        <p class="text-gray-400 text-sm sm:text-base">Classic Tkinter Python Game Transformed for Web</p>
-    </header>
-
-    <!-- Main Container -->
-    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        
-        <!-- Left Panel: Game Dashboard & Info -->
-        <section class="bg-gray-900/80 border border-gray-800 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
-            <h2 class="text-xl font-bold font-retro text-green-400 border-b border-gray-800 pb-2 flex items-center gap-2">
-                <i class="fa-solid fa-gauge-high"></i> DASHBOARD
-            </h2>
-            
-            <!-- Score Cards -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-black/60 border border-green-500/30 rounded-xl p-3 text-center">
-                    <span class="text-xs text-gray-400 block uppercase font-bold">Current Score</span>
-                    <span id="currentScore" class="text-3xl font-extrabold text-green-400 font-retro">0</span>
-                </div>
-                <div class="bg-black/60 border border-yellow-500/30 rounded-xl p-3 text-center">
-                    <span class="text-xs text-gray-400 block uppercase font-bold">Personal High</span>
-                    <span id="personalHigh" class="text-3xl font-extrabold text-yellow-400 font-retro">0</span>
-                </div>
-            </div>
-
-            <!-- Controls Info -->
-            <div class="bg-black/40 rounded-xl p-4 border border-gray-800 text-sm space-y-2">
-                <p class="font-bold text-gray-300 flex items-center gap-2">
-                    <i class="fa-solid fa-keyboard text-green-400"></i> Controls
-                </p>
-                <div class="grid grid-cols-2 gap-2 text-xs text-gray-400">
-                    <div class="flex items-center gap-1"><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">▲</kbd> <kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">▼</kbd> <kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">◄</kbd> <kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">►</kbd> Move</div>
-                    <div class="flex items-center gap-1"><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">W</kbd><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">A</kbd><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">S</kbd><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">D</kbd> WASD</div>
-                    <div class="flex items-center gap-1"><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">Space</kbd> Pause/Resume</div>
-                    <div class="flex items-center gap-1"><kbd class="bg-gray-800 px-1.5 py-0.5 rounded text-white border border-gray-600">R</kbd> Restart</div>
-                </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="flex gap-2">
-                <button id="startBtn" onclick="restartGame()" class="flex-1 bg-green-500 hover:bg-green-400 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 font-retro text-sm">
-                    <i class="fa-solid fa-rotate-right"></i> RESTART
-                </button>
-            </div>
-        </section>
-
-        <!-- Center Panel: Game Canvas Screen -->
-        <section class="flex flex-col items-center justify-center">
-            <div class="relative bg-black rounded-2xl p-2 neon-border max-w-full overflow-hidden">
-                <!-- Canvas matching exact Python setup: 500x500 -->
-                <canvas id="gameCanvas" width="500" height="500" class="block bg-black rounded-lg max-w-full h-auto cursor-pointer"></canvas>
-                
-                <!-- Start / Pause / Game Over Overlay -->
-                <div id="gameOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-xl transition-all">
-                    <h3 id="overlayTitle" class="text-3xl sm:text-4xl font-retro text-green-400 neon-text-green mb-4">SNAKE GAME</h3>
-                    <p id="overlaySub" class="text-gray-300 mb-6 max-w-xs">Press Space or click the button below to start!</p>
-                    <button id="overlayBtn" onclick="restartGame()" class="bg-green-500 hover:bg-green-400 text-black font-bold py-3 px-8 rounded-xl font-retro text-sm transition-all shadow-lg hover:scale-105">
-                        START GAME
-                    </button>
-                </div>
-            </div>
-
-            <!-- On-screen Mobile Controls -->
-            <div class="grid grid-cols-3 gap-2 mt-4 w-full max-w-[280px] sm:hidden">
-                <div></div>
-                <button onclick="changeDirection('up')" class="bg-gray-800 active:bg-green-500 active:text-black text-green-400 border border-green-500/30 font-bold p-4 rounded-xl text-xl flex justify-center items-center shadow"><i class="fa-solid fa-chevron-up"></i></button>
-                <div></div>
-                <button onclick="changeDirection('left')" class="bg-gray-800 active:bg-green-500 active:text-black text-green-400 border border-green-500/30 font-bold p-4 rounded-xl text-xl flex justify-center items-center shadow"><i class="fa-solid fa-chevron-left"></i></button>
-                <button onclick="changeDirection('down')" class="bg-gray-800 active:bg-green-500 active:text-black text-green-400 border border-green-500/30 font-bold p-4 rounded-xl text-xl flex justify-center items-center shadow"><i class="fa-solid fa-chevron-down"></i></button>
-                <button onclick="changeDirection('right')" class="bg-gray-800 active:bg-green-500 active:text-black text-green-400 border border-green-500/30 font-bold p-4 rounded-xl text-xl flex justify-center items-center shadow"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-        </section>
-
-        <!-- Right Panel: Leaderboard -->
-        <section class="bg-gray-900/80 border border-gray-800 rounded-2xl p-5 shadow-xl flex flex-col h-full max-h-[520px]">
-            <h2 class="text-xl font-bold font-retro text-yellow-400 border-b border-gray-800 pb-2 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-trophy"></i> LEADERBOARD
-            </h2>
-
-            <div class="overflow-y-auto flex-1 pr-1">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-xs font-bold text-gray-500 uppercase border-b border-gray-800">
-                            <th class="pb-2">#</th>
-                            <th class="pb-2">Name</th>
-                            <th class="pb-2 text-right">Score</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboardBody" class="divide-y divide-gray-800/60 text-sm">
-                        <!-- Leaderboard items populated by JS -->
-                    </tbody>
-                </table>
-            </div>
+<div class="container">
+    <!-- 게임 영역 -->
+    <div class="game-section">
+        <div class="header">
+            <h1>🐍 S N A K E</h1>
+            <div class="score-board">SCORE: <span id="current-score">0</span></div>
         </div>
-    </main>
+        
+        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        
+        <div class="controls-hint">방향키(↑, ↓, ←, →)로 뱀을 조종하세요!</div>
 
-    <!-- Game Over Modal for Name Entry -->
-    <div id="nameModal" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-gray-900 border-2 border-green-500 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
-            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto text-2xl border border-red-500/40">
-                <i class="fa-solid fa-skull"></i>
-            </div>
-            <h3 class="text-2xl font-bold font-retro text-red-500 neon-text-red">GAME OVER</h3>
-            <p class="text-gray-300 text-sm">You scored <span id="modalScore" class="text-green-400 font-bold font-retro text-lg">0</span> points!</p>
-            
-            <div class="text-left space-y-1">
-                <label for="playerName" class="text-xs font-bold text-gray-400 uppercase">Enter Your Name</label>
-                <input type="text" id="playerName" placeholder="Player 1" maxlength="12" class="w-full bg-black border border-gray-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-green-500 font-bold text-center">
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button onclick="saveScoreAndClose()" class="w-full bg-green-500 hover:bg-green-400 text-black font-bold py-2.5 rounded-xl font-retro text-xs transition-all">
-                    SAVE SCORE
-                </button>
-            </div>
+        <!-- 모바일 터치 컨트롤러 -->
+        <div class="touch-controls">
+            <div></div>
+            <button class="touch-btn" onclick="changeDirection('up')">▲</button>
+            <div></div>
+            <button class="touch-btn" onclick="changeDirection('left')">◀</button>
+            <button class="touch-btn" onclick="changeDirection('down')">▼</button>
+            <button class="touch-btn" onclick="changeDirection('right')">▶</button>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="text-center text-xs text-gray-600 my-4">
-        Original Python Tkinter Logic • Converted to Web Engine
-    </footer>
+    <!-- 실시간 리더보드 영역 -->
+    <div class="leaderboard-section">
+        <h2>🏆 실시간 랭킹</h2>
+        <ul class="leaderboard-list" id="leaderboard">
+            <li class="leaderboard-item">불러오는 중...</li>
+        </ul>
+    </div>
+</div>
 
-    <!-- JavaScript Game Engine -->
-    <script>
-        // Python Constant Matching Configuration
-        const GAME_WIDTH = 500;
-        const GAME_HEIGHT = 500;
-        const SPEED = 100; // Speed in milliseconds matching Python code
-        const SPACE_SIZE = 20;
-        const BODY_PARTS = 4;
-        const SNAKE_COLOR = "#00FF00";
-        const FOOD_COLOR = "#FF0000";
-        const BACKGROUND_COLOR = "#000000";
+<!-- Firebase SDK (Firestore 모듈) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Canvas Setup
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
+    // ⚠️ [수정 필요] 본인의 Firebase 설정 정보를 아래에 넣어주세요 ⚠️
+    const firebaseConfig = {
+        apiKey: "AIzaSyBARegSC31rHoGcpBMGo94byQAsi0MQ4wk",
+        authDomain: "web-game-890e0.firebaseapp.com",
+        projectId: "web-game-890e0",
+        storageBucket: "web-game-890e0.firebasestorage.app",
+        messagingSenderId: "452900776702",
+        appId: "1:452900776702:web:be07d1b1ba25eceef153af",
+    };
 
-        // Game State Variables
-        let snake = [];
-        let food = { x: 0, y: 0 };
-        let score = 0;
-        let direction = 'down';
-        let nextDirection = 'down';
-        let gameInterval = null;
-        let isPaused = false;
-        let isGameOver = false;
-        let isGameStarted = false;
+    // Firebase 초기화
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-        // Personal High Score
-        let personalHigh = parseInt(localStorage.getItem("snake_personal_high") || "0");
-        document.getElementById("personalHigh").innerText = personalHigh;
+    // ----------------------------------------------------
+    // 게임 로직 (Python Tkinter 원본 로직 유지)
+    // ----------------------------------------------------
+    const GAME_WIDTH = 500;
+    const GAME_HEIGHT = 500;
+    const SPEED = 100;
+    const SPACE_SIZE = 20;
+    const BODY_PARTS = 4;
+    const SNAKE_COLOR = "#00FF00";
+    const FOOD_COLOR = "#FF0000";
 
-        // Leaderboard Array
-        let leaderboard = JSON.parse(localStorage.getItem("snake_leaderboard") || "[]");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreLabel = document.getElementById("current-score");
 
-        // Initialize Leaderboard View
-        updateLeaderboardUI();
+    let score = 0;
+    let direction = 'down';
+    let snake = [];
+    let food = { x: 0, y: 0 };
+    let gameInterval = null;
+    let isGameOver = false;
 
-        // Canvas Initial Draw
-        drawBackground();
+    function initGame() {
+        score = 0;
+        direction = 'down';
+        isGameOver = false;
+        scoreLabel.textContent = score;
 
-        // --- Core Snake Game Mechanics (Translated directly from Tkinter code) ---
-
-        function initSnake() {
-            snake = [];
-            for (let i = 0; i < BODY_PARTS; i++) {
-                snake.push({ x: 0, y: 0 });
-            }
+        // 뱀 초기화
+        snake = [];
+        for (let i = 0; i < BODY_PARTS; i++) {
+            snake.push({ x: 0, y: 0 });
         }
 
-        function createFood() {
-            const maxX = (GAME_WIDTH / SPACE_SIZE) - 1;
-            const maxY = (GAME_HEIGHT / SPACE_SIZE) - 1;
-            
-            let x = Math.floor(Math.random() * (maxX + 1)) * SPACE_SIZE;
-            let y = Math.floor(Math.random() * (maxY + 1)) * SPACE_SIZE;
+        spawnFood();
+        if (gameInterval) clearInterval(gameInterval);
+        gameInterval = setInterval(nextTurn, SPEED);
+    }
 
-            food = { x, y };
+    function spawnFood() {
+        food.x = Math.floor(Math.random() * (GAME_WIDTH / SPACE_SIZE)) * SPACE_SIZE;
+        food.y = Math.floor(Math.random() * (GAME_HEIGHT / SPACE_SIZE)) * SPACE_SIZE;
+    }
+
+    function nextTurn() {
+        if (isGameOver) return;
+
+        let headX = snake[0].x;
+        let headY = snake[0].y;
+
+        if (direction === "up") headY -= SPACE_SIZE;
+        else if (direction === "down") headY += SPACE_SIZE;
+        else if (direction === "left") headX -= SPACE_SIZE;
+        else if (direction === "right") headX += SPACE_SIZE;
+
+        // 새로운 머리 위치 추가
+        snake.unshift({ x: headX, y: headY });
+
+        // 먹이 먹음 확인
+        if (headX === food.x && headY === food.y) {
+            score += 1;
+            scoreLabel.textContent = score;
+            spawnFood();
+        } else {
+            snake.pop(); // 먹지 않았으면 꼬리 제거
         }
 
-        function drawBackground() {
-            ctx.fillStyle = BACKGROUND_COLOR;
-            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        // 충돌 체크
+        if (checkCollisions()) {
+            handleGameOver();
+        } else {
+            draw();
+        }
+    }
+
+    function checkCollisions() {
+        const head = snake[0];
+
+        // 벽 충돌
+        if (head.x < 0 || head.x >= GAME_WIDTH || head.y < 0 || head.y >= GAME_HEIGHT) {
+            return true;
         }
 
-        function drawSnake() {
-            ctx.fillStyle = SNAKE_COLOR;
-            snake.forEach(part => {
-                ctx.fillRect(part.x, part.y, SPACE_SIZE, SPACE_SIZE);
-                // Inner border effect for neon aesthetics
-                ctx.strokeStyle = "#003300";
-                ctx.strokeRect(part.x, part.y, SPACE_SIZE, SPACE_SIZE);
-            });
-        }
-
-        function drawFood() {
-            ctx.fillStyle = FOOD_COLOR;
-            ctx.beginPath();
-            ctx.arc(food.x + SPACE_SIZE/2, food.y + SPACE_SIZE/2, SPACE_SIZE/2, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function nextTurn() {
-            if (isPaused || isGameOver) return;
-
-            direction = nextDirection;
-            let headX = snake[0].x;
-            let headY = snake[0].y;
-
-            if (direction === "up") headY -= SPACE_SIZE;
-            else if (direction === "down") headY += SPACE_SIZE;
-            else if (direction === "left") headX -= SPACE_SIZE;
-            else if (direction === "right") headX += SPACE_SIZE;
-
-            // New Head Coordinates
-            const newHead = { x: headX, y: headY };
-
-            // Insert new head at beginning
-            snake.unshift(newHead);
-
-            // Food Check
-            if (headX === food.x && headY === food.y) {
-                score += 1;
-                document.getElementById("currentScore").innerText = score;
-                createFood();
-            } else {
-                // Remove Tail
-                snake.pop();
-            }
-
-            // Collision Check
-            if (checkCollisions(newHead)) {
-                handleGameOver();
-            } else {
-                render();
-            }
-        }
-
-        function render() {
-            drawBackground();
-            drawFood();
-            drawSnake();
-        }
-
-        function checkCollisions(head) {
-            // Wall Collisions
-            if (head.x < 0 || head.x >= GAME_WIDTH || head.y < 0 || head.y >= GAME_HEIGHT) {
+        // 자기 자신 충돌
+        for (let i = 1; i < snake.length; i++) {
+            if (head.x === snake[i].x && head.y === snake[i].y) {
                 return true;
             }
+        }
+        return false;
+    }
 
-            // Self Collisions
-            for (let i = 1; i < snake.length; i++) {
-                if (head.x === snake[i].x && head.y === snake[i].y) {
-                    return true;
+    function draw() {
+        // 배경 지우기
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+        // 먹이 그리기
+        ctx.fillStyle = FOOD_COLOR;
+        ctx.beginPath();
+        ctx.arc(food.x + SPACE_SIZE/2, food.y + SPACE_SIZE/2, SPACE_SIZE/2, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // 뱀 그리기
+        ctx.fillStyle = SNAKE_COLOR;
+        snake.forEach(part => {
+            ctx.fillRect(part.x, part.y, SPACE_SIZE, SPACE_SIZE);
+        });
+    }
+
+    async function handleGameOver() {
+        isGameOver = true;
+        clearInterval(gameInterval);
+
+        // 게임 오버 텍스트
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        ctx.fillStyle = "red";
+        ctx.font = "40px Consolas";
+        ctx.textAlign = "center";
+        ctx.fillText("GAME OVER", GAME_WIDTH / 2, GAME_HEIGHT / 2);
+
+        // 점수 등록 안내
+        setTimeout(async () => {
+            if (score > 0) {
+                const playerName = prompt(`게임 오버! 당신의 점수는 ${score}점입니다.\n랭킹에 등록할 이름을 입력하세요:`, "익명 플레이어");
+                if (playerName) {
+                    await saveScore(playerName, score);
                 }
             }
-
-            return false;
-        }
-
-        function changeDirection(newDir) {
-            if (newDir === 'left' && direction !== 'right') nextDirection = newDir;
-            else if (newDir === 'right' && direction !== 'left') nextDirection = newDir;
-            else if (newDir === 'up' && direction !== 'down') nextDirection = newDir;
-            else if (newDir === 'down' && direction !== 'up') nextDirection = newDir;
-        }
-
-        function restartGame() {
-            clearInterval(gameInterval);
-            score = 0;
-            direction = 'down';
-            nextDirection = 'down';
-            isGameOver = false;
-            isPaused = false;
-            isGameStarted = true;
-
-            document.getElementById("currentScore").innerText = score;
-            document.getElementById("gameOverlay").classList.add("hidden");
-
-            initSnake();
-            createFood();
-            render();
-
-            gameInterval = setInterval(nextTurn, SPEED);
-        }
-
-        function handleGameOver() {
-            clearInterval(gameInterval);
-            isGameOver = true;
-            isGameStarted = false;
-
-            // Update Personal High
-            if (score > personalHigh) {
-                personalHigh = score;
-                localStorage.setItem("snake_personal_high", personalHigh.toString());
-                document.getElementById("personalHigh").innerText = personalHigh;
+            if (confirm("다시 시작하시겠습니까?")) {
+                initGame();
             }
+        }, 100);
+    }
 
-            // Show Game Over Modal if score qualifies or player wants to save name
-            document.getElementById("modalScore").innerText = score;
-            document.getElementById("nameModal").classList.remove("hidden");
+    window.changeDirection = function(newDirection) {
+        if (newDirection === 'left' && direction !== 'right') direction = newDirection;
+        else if (newDirection === 'right' && direction !== 'left') direction = newDirection;
+        else if (newDirection === 'up' && direction !== 'down') direction = newDirection;
+        else if (newDirection === 'down' && direction !== 'up') direction = newDirection;
+    };
+
+    // 키보드 이벤트
+    window.addEventListener("keydown", e => {
+        if (e.key === "ArrowLeft") changeDirection('left');
+        else if (e.key === "ArrowRight") changeDirection('right');
+        else if (e.key === "ArrowUp") changeDirection('up');
+        else if (e.key === "ArrowDown") changeDirection('down');
+    });
+
+    // ----------------------------------------------------
+    // Firebase Firestore 리더보드 연동 함수
+    // ----------------------------------------------------
+    
+    // 점수 저장
+    async function saveScore(name, playerScore) {
+        try {
+            await addDoc(collection(db, "leaderboard"), {
+                name: name.trim() || "익명",
+                score: playerScore,
+                timestamp: new Date()
+            });
+        } catch (e) {
+            console.error("점수 저장 실패:", e);
+        }
+    }
+
+    // 실시간 순위표 수신 (상위 10개 점수)
+    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
+    onSnapshot(q, (snapshot) => {
+        const leaderboardList = document.getElementById("leaderboard");
+        leaderboardList.innerHTML = "";
+
+        if (snapshot.empty) {
+            leaderboardList.innerHTML = '<li class="leaderboard-item">등록된 점수가 없습니다.</li>';
+            return;
         }
 
-        function saveScoreAndClose() {
-            const nameInput = document.getElementById("playerName").value.trim() || "Player";
+        let rank = 1;
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const li = document.createElement("li");
+            li.className = `leaderboard-item ${rank <= 3 ? 'top3' : ''}`;
             
-            // Add to Leaderboard
-            leaderboard.push({
-                name: nameInput,
-                score: score,
-                date: new Date().toLocaleDateString()
-            });
-
-            // Sort & Keep Top 10
-            leaderboard.sort((a, b) => b.score - a.score);
-            leaderboard = leaderboard.slice(0, 10);
-
-            // Save to LocalStorage
-            localStorage.setItem("snake_leaderboard", JSON.stringify(leaderboard));
-
-            updateLeaderboardUI();
-
-            // Close Modal & Show Overlay
-            document.getElementById("nameModal").classList.add("hidden");
-            
-            const overlay = document.getElementById("gameOverlay");
-            document.getElementById("overlayTitle").innerText = "GAME OVER";
-            document.getElementById("overlayTitle").className = "text-3xl sm:text-4xl font-retro text-red-500 neon-text-red mb-4";
-            document.getElementById("overlaySub").innerText = `Final Score: ${score}`;
-            document.getElementById("overlayBtn").innerText = "PLAY AGAIN";
-            overlay.classList.remove("hidden");
-        }
-
-        function updateLeaderboardUI() {
-            const tbody = document.getElementById("leaderboardBody");
-            tbody.innerHTML = "";
-
-            if (leaderboard.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-gray-600 italic">No records yet. Play now!</td></tr>`;
-                return;
-            }
-
-            leaderboard.forEach((item, index) => {
-                const tr = document.createElement("tr");
-                tr.className = "hover:bg-gray-800/40 transition-colors";
-                
-                let rankColor = "text-gray-400";
-                if (index === 0) rankColor = "text-yellow-400 font-bold";
-                else if (index === 1) rankColor = "text-gray-300 font-bold";
-                else if (index === 2) rankColor = "text-amber-600 font-bold";
-
-                tr.innerHTML = `
-                    <td class="py-2.5 font-retro text-xs ${rankColor}">${index + 1}</td>
-                    <td class="py-2.5 font-bold text-gray-200">${escapeHtml(item.name)}</td>
-                    <td class="py-2.5 text-right font-retro text-green-400 text-xs">${item.score}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function escapeHtml(text) {
-            return text.replace(/[&<>"']/g, function(m) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
-            });
-        }
-
-        // --- Keyboard Event Handling ---
-        window.addEventListener("keydown", (e) => {
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
-                e.preventDefault(); // Prevent page scrolling
-            }
-
-            if (!isGameStarted && (e.code === "Space" || e.code === "Enter")) {
-                restartGame();
-                return;
-            }
-
-            switch(e.code) {
-                case "ArrowUp":
-                case "KeyW":
-                    changeDirection('up');
-                    break;
-                case "ArrowDown":
-                case "KeyS":
-                    changeDirection('down');
-                    break;
-                case "ArrowLeft":
-                case "KeyA":
-                    changeDirection('left');
-                    break;
-                case "ArrowRight":
-                case "KeyD":
-                    changeDirection('right');
-                    break;
-                case "Space":
-                    if (isGameStarted && !isGameOver) {
-                        isPaused = !isPaused;
-                        if (!isPaused) gameInterval = setInterval(nextTurn, SPEED);
-                        else clearInterval(gameInterval);
-                    }
-                    break;
-                case "KeyR":
-                    restartGame();
-                    break;
-            }
+            li.innerHTML = `
+                <span class="rank">${rank}위</span>
+                <span class="player-name">${data.name}</span>
+                <span class="player-score">${data.score}점</span>
+            `;
+            leaderboardList.appendChild(li);
+            rank++;
         });
-    </script>
+    });
+
+    // 게임 시작
+    initGame();
+</script>
+
 </body>
 </html>
