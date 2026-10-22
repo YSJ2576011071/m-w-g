@@ -28,7 +28,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
@@ -38,16 +38,19 @@
             max-width: 900px;
             width: 100%;
             justify-content: center;
+            align-items: flex-start;
         }
 
         .game-section {
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 100%;
+            max-width: 500px;
         }
 
         .header {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-align: center;
         }
 
@@ -68,11 +71,25 @@
             font-weight: bold;
         }
 
+        /* 반응형 캔버스 설정 (모바일에서 짤림 방지) */
+        .canvas-wrapper {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
         canvas {
             border: 3px solid var(--border-color);
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
             background-color: #000;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 500px;
+            max-height: 500px;
         }
 
         .leaderboard-section {
@@ -80,7 +97,8 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 20px;
-            width: 320px;
+            width: 100%;
+            max-width: 320px;
             display: flex;
             flex-direction: column;
         }
@@ -100,7 +118,7 @@
             flex-direction: column;
             gap: 10px;
             overflow-y: auto;
-            max-height: 400px;
+            max-height: 350px;
         }
 
         .leaderboard-item {
@@ -120,7 +138,7 @@
         .rank {
             font-weight: bold;
             color: var(--accent-green);
-            width: 30px;
+            width: 35px;
         }
 
         .player-name {
@@ -128,6 +146,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            padding: 0 5px;
         }
 
         .player-score {
@@ -144,25 +163,35 @@
         /* 모바일용 버추얼 패드 */
         .touch-controls {
             display: none;
-            grid-template-columns: repeat(3, 50px);
+            grid-template-columns: repeat(3, 60px);
             grid-template-rows: repeat(2, 50px);
-            gap: 5px;
+            gap: 8px;
             margin-top: 15px;
+            justify-content: center;
         }
 
         .touch-btn {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             color: var(--text-color);
-            border-radius: 5px;
-            font-size: 1.2rem;
+            border-radius: 8px;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             justify-content: center;
             user-select: none;
+            cursor: pointer;
+        }
+
+        .touch-btn:active {
+            background-color: var(--border-color);
         }
 
         @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+                padding-top: 20px;
+            }
             .touch-controls {
                 display: grid;
             }
@@ -179,7 +208,9 @@
             <div class="score-board">SCORE: <span id="current-score">0</span></div>
         </div>
         
-        <canvas id="gameCanvas" width="500" height="500"></canvas>
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas" width="500" height="500"></canvas>
+        </div>
         
         <div class="controls-hint">방향키(↑, ↓, ←, →)로 뱀을 조종하세요!</div>
 
@@ -208,14 +239,14 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // ⚠️ [수정 필요] 본인의 Firebase 설정 정보를 아래에 넣어주세요 ⚠️
+    // ⚠️ 본인의 Firebase 설정 정보를 아래에 넣어주세요 ⚠️
     const firebaseConfig = {
         apiKey: "AIzaSyBARegSC31rHoGcpBMGo94byQAsi0MQ4wk",
         authDomain: "web-game-890e0.firebaseapp.com",
-        projectId: "web-game-890e0",
-        storageBucket: "web-game-890e0.firebasestorage.app",
-        messagingSenderId: "452900776702",
-        appId: "1:452900776702:web:be07d1b1ba25eceef153af",
+          projectId: "web-game-890e0",
+          storageBucket: "web-game-890e0.firebasestorage.app",
+          messagingSenderId: "452900776702",
+          appId: "1:452900776702:web:be07d1b1ba25eceef153af",
     };
 
     // Firebase 초기화
@@ -223,7 +254,7 @@
     const db = getFirestore(app);
 
     // ----------------------------------------------------
-    // 게임 로직 (Python Tkinter 원본 로직 유지)
+    // 게임 로직
     // ----------------------------------------------------
     const GAME_WIDTH = 500;
     const GAME_HEIGHT = 500;
@@ -250,7 +281,6 @@
         isGameOver = false;
         scoreLabel.textContent = score;
 
-        // 뱀 초기화
         snake = [];
         for (let i = 0; i < BODY_PARTS; i++) {
             snake.push({ x: 0, y: 0 });
@@ -277,19 +307,16 @@
         else if (direction === "left") headX -= SPACE_SIZE;
         else if (direction === "right") headX += SPACE_SIZE;
 
-        // 새로운 머리 위치 추가
         snake.unshift({ x: headX, y: headY });
 
-        // 먹이 먹음 확인
         if (headX === food.x && headY === food.y) {
             score += 1;
             scoreLabel.textContent = score;
             spawnFood();
         } else {
-            snake.pop(); // 먹지 않았으면 꼬리 제거
+            snake.pop();
         }
 
-        // 충돌 체크
         if (checkCollisions()) {
             handleGameOver();
         } else {
@@ -300,12 +327,10 @@
     function checkCollisions() {
         const head = snake[0];
 
-        // 벽 충돌
         if (head.x < 0 || head.x >= GAME_WIDTH || head.y < 0 || head.y >= GAME_HEIGHT) {
             return true;
         }
 
-        // 자기 자신 충돌
         for (let i = 1; i < snake.length; i++) {
             if (head.x === snake[i].x && head.y === snake[i].y) {
                 return true;
@@ -315,17 +340,14 @@
     }
 
     function draw() {
-        // 배경 지우기
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-        // 먹이 그리기
         ctx.fillStyle = FOOD_COLOR;
         ctx.beginPath();
         ctx.arc(food.x + SPACE_SIZE/2, food.y + SPACE_SIZE/2, SPACE_SIZE/2, 0, 2 * Math.PI);
         ctx.fill();
 
-        // 뱀 그리기
         ctx.fillStyle = SNAKE_COLOR;
         snake.forEach(part => {
             ctx.fillRect(part.x, part.y, SPACE_SIZE, SPACE_SIZE);
@@ -336,7 +358,6 @@
         isGameOver = true;
         clearInterval(gameInterval);
 
-        // 게임 오버 텍스트
         ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
         ctx.fillStyle = "red";
@@ -344,7 +365,6 @@
         ctx.textAlign = "center";
         ctx.fillText("GAME OVER", GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
-        // 점수 등록 안내
         setTimeout(async () => {
             if (score > 0) {
                 const playerName = prompt(`게임 오버! 당신의 점수는 ${score}점입니다.\n랭킹에 등록할 이름을 입력하세요:`, "익명 플레이어");
@@ -365,61 +385,8 @@
         else if (newDirection === 'down' && direction !== 'up') direction = newDirection;
     };
 
-    // 키보드 이벤트
     window.addEventListener("keydown", e => {
         if (e.key === "ArrowLeft") changeDirection('left');
         else if (e.key === "ArrowRight") changeDirection('right');
         else if (e.key === "ArrowUp") changeDirection('up');
-        else if (e.key === "ArrowDown") changeDirection('down');
-    });
-
-    // ----------------------------------------------------
-    // Firebase Firestore 리더보드 연동 함수
-    // ----------------------------------------------------
-    
-    // 점수 저장
-    async function saveScore(name, playerScore) {
-        try {
-            await addDoc(collection(db, "leaderboard"), {
-                name: name.trim() || "익명",
-                score: playerScore,
-                timestamp: new Date()
-            });
-        } catch (e) {
-            console.error("점수 저장 실패:", e);
-        }
-    }
-
-    // 실시간 순위표 수신 (상위 10개 점수)
-    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
-    onSnapshot(q, (snapshot) => {
-        const leaderboardList = document.getElementById("leaderboard");
-        leaderboardList.innerHTML = "";
-
-        if (snapshot.empty) {
-            leaderboardList.innerHTML = '<li class="leaderboard-item">등록된 점수가 없습니다.</li>';
-            return;
-        }
-
-        let rank = 1;
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            const li = document.createElement("li");
-            li.className = `leaderboard-item ${rank <= 3 ? 'top3' : ''}`;
-            
-            li.innerHTML = `
-                <span class="rank">${rank}위</span>
-                <span class="player-name">${data.name}</span>
-                <span class="player-score">${data.score}점</span>
-            `;
-            leaderboardList.appendChild(li);
-            rank++;
-        });
-    });
-
-    // 게임 시작
-    initGame();
-</script>
-
-</body>
-</html>
+        else if (e.key === "
